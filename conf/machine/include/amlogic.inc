@@ -1,0 +1,1 @@
+IMAGE_CLASSES += "sdcard_image-wetek"

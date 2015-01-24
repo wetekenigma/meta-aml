@@ -1,0 +1,144 @@
+#!/bin/sh
+
+# Variables shared amoung modules
+ROOTFS_DIR="/mnt" # where to do the switch root
+
+# make mount stop complaining about missing /etc/fstab
+touch /etc/fstab
+
+# initialize /proc, /sys and /var/lock
+mkdir -p /proc /sys /var/lock
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+
+# use /dev with devtmpfs
+if grep -q devtmpfs /proc/filesystems; then
+    mkdir -p /dev
+    mount -t devtmpfs devtmpfs /dev
+else
+    if [ ! -d /dev ]; then
+        fatal "ERROR: /dev doesn't exist and kernel doesn't has devtmpfs enabled."
+    fi
+fi
+
+# create mountpoint for root
+mkdir $ROOTFS_DIR
+
+echo "-->Command line:"
+echo "$@"
+echo "<--Command line done"
+
+
+#insert our precious NFTL
+#modprobe aml_nftl_dev
+
+#Function for parsing command line options with "=" in them
+# get_opt("init=/sbin/init") will return "/sbin/init"
+get_opt() {
+    echo "$@" | cut -d "=" -f 2
+}
+
+#Defaults
+init="/sbin/init.sysvinit"
+root="/dev/mmcblk0p2"
+firmware=""
+rootfstype=
+
+#Process command line options
+for i in $(cat /proc/cmdline); do
+    case $i in
+        root\=*)
+            root=$(get_opt $i)
+            ;;
+        firmware\=*)
+            firmware=$(get_opt $i)
+            ;;
+        rootfstype\=*)
+            rootfstype=$(get_opt $i)
+            ;;
+    esac
+done
+
+# FIXME-ce dirty hack to overwrite commandline....
+root="/dev/mmcblk0p2"
+rootfstype="ext4"
+init="/sbin/init.sysvinit"
+
+#Mount the root device
+if [ "${rootfstype}" != "" ]; then
+    mount -t ${rootfstype} "${root}" /mnt
+else
+    mount "${root}" /mnt
+fi
+
+# Check for real init like and adjust
+if [[ -h "/mnt/sbin/init" ]] ; then
+    init="/sbin/init"
+fi
+
+get_boot() {
+    echo `awk '
+    BEGIN{
+       mtd = -1
+    }
+    /"boot"/ {mtd = $1; len = length(mtd); mtd=substr(mtd, 4, len - 4);
+    }
+    END{
+        if (mtd != -1) print "/dev/mtdblock"mtd
+    }' /proc/mtd`
+}
+
+if [ -n "${firmware}" ]; then
+    if [ -f "/mnt/${firmware}" ] ; then
+        echo "formating file system"
+        mkfs.ext4 /dev/system
+        mkdir -p system
+        mount -t ext4 /dev/system /system
+        echo "extracting file system ..."
+        gunzip -c /mnt/rootfs.tar.gz  | tar -xf - -C /system
+        if [ $? -ne 0 ]; then
+           echo "Error: untar failed."
+        else
+           echo "Done"
+        fi
+        device=$(get_boot)
+        if [ "$device" == "" ]; then
+            device=/dev/boot
+        fi
+        if [ -f "/mnt/boot.img" ]; then
+           echo "Writing boot.img into boot partition(${device})..."
+           dd if=/mnt/boot.img of=${device}
+           echo "Done"
+        elif [ -f "/mnt/uImage" ]; then
+           echo "Writing uImage into boot partition(${device})..."
+           dd if=/mnt/uImage of=${device}
+           echo "Done"
+        fi
+        sync
+        echo "update complete"
+        umount /sys /proc /dev
+        exec chroot /system ${init}
+    else
+        echo "cannot locate ${firmware}"
+        echo "boot normally..."
+    fi
+fi
+echo "Check if ${ROOTFS_DIR}/${init} exists and is executable"
+#Check if $init exists and is executable
+if [[ -x "/mnt/${init}" ]] ; then
+    echo "Unmount all other mounts so that the ram used by the initramfs can be cleared after switch_root"
+    #Unmount all other mounts so that the ram used by
+    #the initramfs can be cleared after switch_root
+    umount /sys /proc /dev
+
+    #Switch to the new root and execute init
+    /bin/mount -t devtmpfs devtmpfs /mnt/dev
+    exec 0</mnt/dev/console
+    exec 1>/mnt/dev/console
+    exec 2>/mnt/dev/console
+    exec switch_root -c /dev/console /mnt "${init}"
+fi
+
+#This will only be run if the exec above failed
+echo "Failed to switch root, dropping to a shell"
+exec sh

@@ -1,0 +1,25 @@
+Index: linux/drivers/amlogic/nand/nand/aml_nftl_new/Makefile
+===================================================================
+--- linux.orig/drivers/amlogic/nand/nand/aml_nftl_new/Makefile
++++ linux/drivers/amlogic/nand/nand/aml_nftl_new/Makefile
+@@ -1,8 +1,19 @@
++ifneq ($(KBUILD_SRC),)
++TOP_KBUILD_SRC := $(KBUILD_SRC)/
++endif
++
+ aml_nftl_dev-objs =
+ aml_nftl_dev-objs += block/aml_nftl_block.o
+ aml_nftl_dev-objs += block/aml_nftl_init.o
+ aml_nftl_dev-objs += block/aml_nftl_hw_interface.o
+ 
+-aml_nftl_dev-objs += nftl/aml_nftl_core_1206.z
++
++
++aml_nftl_dev-objs += nftl/aml_nftl_core.o
++
++
++$(obj)/nftl/aml_nftl_core.o:
++	cp $(TOP_KBUILD_SRC)drivers/amlogic/nand/nand/aml_nftl_new/nftl/aml_nftl_core_1206.z \
++	drivers/amlogic/nand/nand/aml_nftl_new/nftl/aml_nftl_core.o
+ 
+ obj-$(CONFIG_AML_NFTL_NEW)	+= aml_nftl_dev.o
