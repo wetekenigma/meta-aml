@@ -1,9 +1,0 @@
-# Amlogic BSP default providers
-
-PREFERRED_PROVIDER_virtual/kernel = "linux-amlogic"
-PREFERRED_PROVIDER_jpeg = "libjpeg-turbo"
-PREFERRED_PROVIDER_jpeg-native = "libjpeg-turbo-native"
-
-PREFERRED_PROVIDER_virtual/libgles1 = "opengl-amlogic"
-PREFERRED_PROVIDER_virtual/libgles2 = "opengl-amlogic"
-PREFERRED_PROVIDER_virtual/egl = "opengl-amlogic"
