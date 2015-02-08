@@ -3,7 +3,7 @@ SECTION = "base"
 PRIORITY = "required"
 LICENSE = "CLOSED"
 
-PR = "r0"
+PR = "r2"
 
 RDEPENDS_${PN} = "firmware-dvb"
 
