@@ -1,0 +1,23 @@
+SUMMARY = "Yet Another V4L2 Test Application"
+LICENSE = "GPLv2"
+LIC_FILES_CHKSUM = "file://COPYING.GPL;md5=751419260aa954499f7abaabaa882bbe"
+
+SRC_URI = "git://git.ideasonboard.org/yavta.git \
+"
+SRCREV = "fe279d823dc253a95002a0a73d9d791e372e156b"
+
+PV = "0.0"
+PR = "r2"
+S = "${WORKDIR}/git"
+
+# The yavta sources include copies of the headers required to build in the
+# include directory.  The Makefile uses CFLAGS to include these, but since
+# we override the CFLAGS then we need to add this include path back in.
+CFLAGS += "-I${S}/include"
+
+do_install() {
+    install -d ${D}${bindir}
+    install -m 0755 yavta ${D}${bindir}
+}
+
+
