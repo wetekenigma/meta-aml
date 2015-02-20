@@ -4,7 +4,11 @@ LICENSE = "GPLv2"
 
 LIC_FILES_CHKSUM = "file://COPYING;md5=d7810fab7487fb0aad327b76f1be7cd7"
 
+
 inherit kernel
+
+S = "${WORKDIR}/linux-amlogic-${PV}"
+#B = "${WORKDIR}/linux-amlogic-${PV}"
 
 DEPENDS += " xz-native bc-native "
 
@@ -17,9 +21,8 @@ SRCREV="84deff28b859fb9c53e5f8fe1565228c9ea6d862"
 LINUX_VERSION_EXTENSION ?= "amlogic"
 
 PR = "r0"
-PV = "${LINUX_VERSION}"
 
-COMPATIBLE_MACHINE = "wetekplay|alien3|odroidc1|mk808bplus"
+COMPATIBLE_MACHINE = "wetekplay"
 
 # for kernel
 SRC_URI[md5sum] = "0a48fc9262c64b6fd229d26a2caca8b1"
@@ -27,7 +30,6 @@ SRC_URI[sha256sum] = "08fe2eb62ff14a02e93d85125d2b6adcf4cb1645eb18d67a717d2dcb2b
 
 SRC_URI = " \
     http://sources.openelec.tv/devel/linux-amlogic-3.10-84deff2.tar.xz \
-    file://defconfig \
     file://000-svn_rev.patch \
     file://10-arm-show-present-cpu-instead-of-online-cpu-in-proc-c.patch \
     file://20-wetek_dvb_code.patch \
@@ -40,7 +42,9 @@ SRC_URI = " \
     file://110-add_wetekplay_led.patch \
     file://111-add-remote-control-ledtrigger.patch \
     file://130-switch_irq_to_CPU1.patch \
-    file://wetekplay.dtd "
+    file://wetekplay.dtd \ 
+    file://defconfig \
+"
 
 do_configure_prepend () {
     cp -f ${WORKDIR}/wetekplay.dtd ${WORKDIR}/linux-amlogic-3.10-84deff2/arch/arm/boot/dts/amlogic/
@@ -66,10 +70,15 @@ do_compile_prepend () {
 
 do_install_append () {
         # removed binary stuff from Amlogic
-        rm ${D}/usr/src/kernel/mkbootimg
+        if [ -f ${D}/usr/src/kernel/mkbootimg ]
+        then
+            rm ${D}/usr/src/kernel/mkbootimg
+        fi
         # This is x86 elf code...
-        rm ${D}/usr/src/kernel/arch/arm/boot/mkimage
-
+        if [ -f ${D}/usr/src/kernel/arch/arm/boot/mkimage ]
+        then
+            rm ${D}/usr/src/kernel/arch/arm/boot/mkimage
+        fi
         # remove *.z from installation path those are object files from amlogic for binary modules
         find ${D}/usr/src/kernel -type f -name "*.z" | xargs rm -f
 }
