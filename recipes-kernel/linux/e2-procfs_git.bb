@@ -1,18 +1,20 @@
 SUMMARY = "Enigma2 /proc/stb driver"
 SECTION = "base"
 PRIORITY = "required"
-LICENSE = "GPLv2+"
+LICENSE = "CLOSED"
 
-PR = "r0"
+PR = "r2"
 inherit module
 
-PV = "experimental-git${SRCPV}"
-SRC_URI = "git://github.com/wetekenigma/e2-procfs.git;user=git;protocol=ssh"
-SRCREV = "${AUTOREV}"
+SRC_URI = "file://e2-procfs.ko"
 
-S = "${WORKDIR}/git"
 
-LIC_FILES_CHKSUM = "file://${S}/LICENSE.txt;md5=b234ee4d69f5fce4486a80fdaf4a4263"
+do_compile() {
+}
 
+do_install() {
+    install -d ${D}${base_libdir}/modules/${KERNEL_VERSION}/extra
+    install -m 0755 ${WORKDIR}/e2-procfs.ko ${D}${base_libdir}/modules/${KERNEL_VERSION}/extra/
+}
 
 
