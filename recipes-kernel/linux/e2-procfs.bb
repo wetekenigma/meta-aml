@@ -4,10 +4,11 @@ PRIORITY = "required"
 LICENSE = "CLOSED"
 
 PR = "r2"
+RDEPENDS_${PN} = "wetek-dvb-modules"
 inherit module
 
 SRC_URI = "file://e2-procfs.ko"
-
+S = "${WORKDIR}"
 
 do_compile() {
 }
