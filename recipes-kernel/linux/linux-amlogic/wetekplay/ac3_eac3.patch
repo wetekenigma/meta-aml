@@ -1,0 +1,85 @@
+diff -Naur a/arch/arm/include/asm/delay.h b/arch/arm/include/asm/delay.h
+--- a/arch/arm/include/asm/delay.h	2015-05-09 15:26:18.634898400 +0200
++++ b/arch/arm/include/asm/delay.h	2015-05-09 15:27:12.690458427 +0200
+@@ -49,7 +49,7 @@
+  * a constant)
+  */
+ #define __udelay(n)		arm_delay_ops.udelay(n)
+-#define __const_udelay(n)	arm_delay_ops.const_udelay(n)
++//#define __const_udelay(n)	arm_delay_ops.const_udelay(n)
+ 
+ #define udelay(n)							\
+ 	(__builtin_constant_p(n) ?					\
+@@ -61,6 +61,8 @@
+ extern void __loop_delay(unsigned long loops);
+ extern void __loop_udelay(unsigned long usecs);
+ extern void __loop_const_udelay(unsigned long);
++extern void __const_udelay(unsigned long);
++
+ 
+ /* Delay-loop timer registration. */
+ #define ARCH_HAS_READ_CURRENT_TIMER
+diff -Naur a/arch/arm/lib/delay.c b/arch/arm/lib/delay.c
+--- a/arch/arm/lib/delay.c	2015-05-09 12:29:01.641128845 +0200
++++ b/arch/arm/lib/delay.c	2015-05-09 15:28:06.218022873 +0200
+@@ -34,6 +34,12 @@
+ 	.udelay		= __loop_udelay,
+ };
+ 
++void __const_udelay(unsigned long xloops)
++{
++    return __loop_const_udelay(xloops);
++}
++EXPORT_SYMBOL(__const_udelay);
++
+ static const struct delay_timer *delay_timer;
+ static bool delay_calibrated;
+ 
+diff -Naur a/drivers/amlogic/audiodsp/audiodsp_module.c b/drivers/amlogic/audiodsp/audiodsp_module.c
+--- a/drivers/amlogic/audiodsp/audiodsp_module.c	2015-05-09 12:31:03.252154636 +0200
++++ b/drivers/amlogic/audiodsp/audiodsp_module.c	2015-05-09 12:47:16.920371312 +0200
+@@ -76,7 +76,7 @@
+ 
+ extern struct audio_info * get_audio_info(void);
+ extern void	aml_alsa_hw_reprepare(void);
+-extern void dsp_get_debug_interface(int flag);
++extern void dsp_get_debug_interface(void);
+ void audiodsp_moniter(unsigned long);
+ static struct audiodsp_priv *audiodsp_p;
+ #define  DSP_DRIVER_NAME	"audiodsp"
+@@ -148,13 +148,6 @@
+ 	dsp_stop(priv);
+ 	ret=dsp_start(priv,pmcode);
+ 	if(ret==0){
+-#ifndef CONFIG_MESON_TRUSTZONE
+-#if MESON_CPU_TYPE == MESON_CPU_TYPE_MESON6
+-		if(priv->stream_fmt == MCODEC_FMT_DTS || priv->stream_fmt == MCODEC_FMT_AC3 || priv->stream_fmt == MCODEC_FMT_EAC3){
+-			dsp_get_debug_interface(1);
+-		}
+-#endif
+-#endif
+ 		start_audiodsp_monitor(priv);
+ 
+ #ifdef CONFIG_AM_VDEC_REAL
+@@ -313,12 +306,6 @@
+ 				}
+ 			else
+ 				{
+-#ifndef CONFIG_MESON_TRUSTZONE
+-#if MESON_CPU_TYPE == MESON_CPU_TYPE_MESON6
+-                               if(priv->stream_fmt == MCODEC_FMT_DTS || priv->stream_fmt == MCODEC_FMT_AC3 || priv->stream_fmt == MCODEC_FMT_EAC3)
+-                                       dsp_get_debug_interface(0);
+-#endif
+-#endif
+ 				ret=audiodsp_start();
+ 				}
+ 			break;
+@@ -1147,7 +1134,7 @@
+     memset((void*)DSP_REG_OFFSET,0,REG_MEM_SIZE);
+ #ifndef CONFIG_MESON_TRUSTZONE
+ #if ((MESON_CPU_TYPE == MESON_CPU_TYPE_MESON6)||(MESON_CPU_TYPE == MESON_CPU_TYPE_MESON6TV))
+-    dsp_get_debug_interface(0);
++    dsp_get_debug_interface();
+ #elif MESON_CPU_TYPE == MESON_CPU_TYPE_MESON8
+ 	// to do
+ #endif
