@@ -3,7 +3,7 @@ HOMEPAGE = "http://bitbucket.org/amlinux"
 LICENSE = "CLOSED"
 PACKAGE_ARCH = "all"
 
-PR = "r0"
+PR = "r1"
 
 SRC_URI = "file://*"
 
