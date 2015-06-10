@@ -3,9 +3,9 @@ SECTION = "base"
 PRIORITY = "required"
 LICENSE = "CLOSED"
 
-PR = "r2"
+#require conf/license/license-close.inc
 
-RDEPENDS_${PN} = "firmware-dvb"
+PR = "r7"
 
 SRC_URI = "file://wetekdvb.ko"
 
@@ -14,8 +14,6 @@ S = "${WORKDIR}"
 INHIBIT_PACKAGE_STRIP = "1"
 
 inherit module
-
-
 
 do_compile() {
 }
@@ -28,3 +26,5 @@ do_install() {
 }
 
 FILES_${PN} += "${sysconfdir}/modules-load.d/_${MACHINE}.conf"
+
+
