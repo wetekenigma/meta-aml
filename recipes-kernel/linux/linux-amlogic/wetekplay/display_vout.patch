@@ -1,0 +1,11 @@
+diff -Naur c/drivers/amlogic/display/vout/vout_serve.c d/drivers/amlogic/display/vout/vout_serve.c
+--- c/drivers/amlogic/display/vout/vout_serve.c	2015-05-03 17:38:07.000000000 +0200
++++ d/drivers/amlogic/display/vout/vout_serve.c	2015-06-11 17:38:36.000000000 +0200
+@@ -173,6 +173,7 @@
+ 	vout_notifier_call_chain(VOUT_EVENT_MODE_CHANGE,&mode) ;
+ 	printk("%s[%d]\n", __func__, __LINE__);
+ }
++EXPORT_SYMBOL(set_vout_mode);
+ 
+ #ifdef CONFIG_AML_VOUT_FRAMERATE_AUTOMATION
+ void set_vout_mode_fr_auto(char* name)

@@ -43,6 +43,7 @@ SRC_URI = " \
     file://wetekplay.dtd \
     file://dsp_data.TXT \
     file://osd_dev.c \
+	file://display_vout.patch \
 "
 
 
